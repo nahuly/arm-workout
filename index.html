@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>팔 만들기 💪 데일리 루틴</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#1a1d26; --card2:#222632;
+    --txt:#f2f4f8; --sub:#9aa3b2; --line:#2c313d;
+    --accent:#ff8a3d; --accent2:#ffb072; --ok:#3ddc84; --rest:#5b8cff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    line-height:1.5;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:18px 16px 60px;}
+  header h1{font-size:21px;margin:4px 0 2px;font-weight:800;letter-spacing:-.4px;}
+  header p{margin:0;color:var(--sub);font-size:13px;}
+
+  .days{display:flex;gap:6px;margin:18px 0 16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+  .days::-webkit-scrollbar{display:none;}
+  .day{
+    flex:0 0 auto;min-width:42px;text-align:center;padding:9px 0;border-radius:13px;
+    background:var(--card);border:1px solid var(--line);color:var(--sub);
+    font-size:14px;font-weight:700;cursor:pointer;transition:.15s;
+  }
+  .day .n{font-size:11px;display:block;color:var(--sub);font-weight:600;margin-bottom:2px;}
+  .day.active{background:var(--accent);color:#1a1208;border-color:var(--accent);}
+  .day.active .n{color:#7a4a18;}
+  .day.today::after{content:"";display:block;width:5px;height:5px;border-radius:50%;background:var(--accent2);margin:3px auto 0;}
+  .day.active.today::after{background:#1a1208;}
+
+  .hero{
+    background:linear-gradient(135deg,#262a36,#1a1d26);border:1px solid var(--line);
+    border-radius:18px;padding:18px;margin-bottom:16px;
+  }
+  .hero .tag{display:inline-block;font-size:12px;font-weight:700;color:var(--accent2);
+    background:rgba(255,138,61,.12);padding:4px 10px;border-radius:20px;margin-bottom:10px;}
+  .hero h2{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.5px;}
+  .hero .meta{color:var(--sub);font-size:13px;}
+
+  .rest-box{text-align:center;padding:34px 18px;}
+  .rest-box .emo{font-size:46px;}
+  .rest-box h2{margin:10px 0 6px;font-size:22px;}
+  .rest-box p{color:var(--sub);margin:0;font-size:14px;}
+
+  .sec-title{font-size:13px;color:var(--sub);font-weight:700;margin:22px 4px 10px;
+    text-transform:uppercase;letter-spacing:.5px;}
+
+  .ex{
+    background:var(--card);border:1px solid var(--line);border-radius:15px;
+    padding:14px 14px 12px;margin-bottom:11px;transition:.2s;
+  }
+  .ex.done{opacity:.55;}
+  .ex-head{display:flex;align-items:flex-start;gap:12px;}
+  .check{
+    flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid var(--line);
+    background:transparent;margin-top:2px;cursor:pointer;display:grid;place-items:center;
+    font-size:15px;color:transparent;transition:.15s;
+  }
+  .ex.done .check{background:var(--ok);border-color:var(--ok);color:#0a2316;}
+  .ex-body{flex:1;min-width:0;}
+  .ex-name{font-weight:700;font-size:16px;margin:0;}
+  .ex.done .ex-name{text-decoration:line-through;}
+  .ex-sets{color:var(--accent2);font-weight:700;font-size:14px;margin-top:3px;}
+  .ex-target{display:inline-block;font-size:11px;color:var(--sub);background:var(--card2);
+    padding:2px 8px;border-radius:6px;margin-top:7px;}
+  .ex-tip{margin:9px 0 0;font-size:13px;color:var(--sub);background:var(--card2);
+    border-radius:9px;padding:9px 11px;border-left:3px solid var(--accent);}
+
+  .progress{position:sticky;bottom:0;margin:0 -16px;padding:12px 16px;
+    background:linear-gradient(transparent,var(--bg) 30%);}
+  .bar{height:8px;background:var(--card);border-radius:10px;overflow:hidden;}
+  .bar > div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:.3s;}
+  .ptxt{text-align:center;font-size:13px;color:var(--sub);margin-top:8px;font-weight:600;}
+  .done-msg{color:var(--ok);}
+
+  .footnote{color:var(--sub);font-size:12px;text-align:center;margin-top:26px;line-height:1.6;}
+  .reset{background:none;border:1px solid var(--line);color:var(--sub);font-size:12px;
+    padding:6px 14px;border-radius:20px;cursor:pointer;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>💪 팔 만들기 데일리</h1>
+    <p>초보 · 1kg 아령 + 밴드 · 매일 자동 추천</p>
+  </header>
+
+  <div class="days" id="days"></div>
+
+  <div id="content"></div>
+
+  <div class="progress" id="progress" style="display:none">
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="ptxt" id="ptxt"></div>
+  </div>
+
+  <div class="footnote">
+    가벼운 무게는 <b>천천히(2초 올리고 2초 내리고)</b> 하는 게 핵심이야.<br>
+    통증이 있으면 멈추고, 운동 사이 1분씩 쉬어.<br>
+    <button class="reset" id="reset">오늘 체크 초기화</button>
+  </div>
+</div>
+
+<script>
+/* ===== 루틴 데이터 (초보 · 1kg 아령 2개 + 저항밴드) ===== */
+const PLAN = {
+  0:{type:"rest", title:"완전 휴식", emo:"😴", note:"근육은 쉴 때 자라. 푹 쉬고 스트레칭만 가볍게!"},
+  1:{type:"work", title:"이두 + 전완", subtitle:"알통·앞팔 집중", warmup:"팔 돌리기 20초 + 손목 돌리기 20초",
+     ex:[
+       {n:"덤벨 컬", s:"3세트 × 15회", t:"이두", tip:"팔꿈치를 옆구리에 고정! 반동 쓰지 말고 천천히."},
+       {n:"밴드 컬", s:"3세트 × 20회", t:"이두", tip:"밴드 밟고 서서 당겨. 1kg보다 끝까지 긴장감 줘서 펌핑 잘 됨."},
+       {n:"해머 컬", s:"3세트 × 15회", t:"이두/전완", tip:"엄지가 위로 가게 잡고. 망치 들듯이."},
+       {n:"리스트 컬", s:"3세트 × 20회", t:"전완", tip:"손바닥 위로, 손목만 까딱까딱. 앞팔 두꺼워지는 운동."}
+     ]},
+  2:{type:"work", title:"삼두 + 어깨", subtitle:"팔 뒤쪽·어깨 라인", warmup:"어깨 으쓱 20초 + 팔 뒤로 깍지 스트레칭",
+     ex:[
+       {n:"오버헤드 익스텐션", s:"3세트 × 15회", t:"삼두", tip:"아령 양손으로 머리 뒤로. 팔꿈치 고정하고 위로만."},
+       {n:"덤벨 킥백", s:"3세트 × 15회", t:"삼두", tip:"상체 숙이고 팔 뒤로 쭉. 팔 뒤쪽 흔들리는 살에 직빵."},
+       {n:"밴드 푸시다운", s:"3세트 × 20회", t:"삼두", tip:"문 위에 밴드 걸고 아래로 눌러. 팔꿈치 붙이고."},
+       {n:"사이드 레터럴 레이즈", s:"3세트 × 15회", t:"어깨", tip:"양옆으로 어깨 높이까지. 어깨 둥글게 만들어줌."}
+     ]},
+  3:{type:"work", title:"이두 + 전완 (변형)", subtitle:"각도 바꿔 자극", warmup:"팔 돌리기 20초 + 손목 돌리기 20초",
+     ex:[
+       {n:"컨센트레이션 컬", s:"3세트 × 12회", t:"이두", tip:"앉아서 팔꿈치를 허벅지 안쪽에 대고 한 팔씩. 알통 정점 자극."},
+       {n:"밴드 컬 (와이드)", s:"3세트 × 20회", t:"이두", tip:"밴드를 넓게 잡고 컬. 안쪽 이두 자극."},
+       {n:"역방향 컬", s:"3세트 × 15회", t:"전완", tip:"손등이 위로 오게 잡고 컬. 앞팔 윗부분."},
+       {n:"리버스 리스트 컬", s:"3세트 × 20회", t:"전완", tip:"손등 위로, 손목 들어올리기. 앞팔 균형."}
+     ]},
+  4:{type:"work", title:"삼두 + 어깨 (변형)", subtitle:"각도 바꿔 자극", warmup:"어깨 으쓱 20초 + 팔 스트레칭",
+     ex:[
+       {n:"무릎 푸시업", s:"3세트 × 10회", t:"삼두/가슴", tip:"손 좁게 짚으면 삼두에 더 들어가. 힘들면 무릎 대고."},
+       {n:"한손 오버헤드 익스텐션", s:"3세트 × 12회", t:"삼두", tip:"아령 한 손으로 머리 뒤. 좌우 번갈아."},
+       {n:"프론트 레이즈", s:"3세트 × 15회", t:"어깨", tip:"앞으로 어깨 높이까지 들기. 천천히 내리기."},
+       {n:"밴드 풀어파트", s:"3세트 × 20회", t:"어깨/등", tip:"밴드 가슴 앞에서 양옆으로 쫙. 자세 교정 + 뒤어깨."}
+     ]},
+  5:{type:"work", title:"팔 전체 펌핑 서킷", subtitle:"가볍게 순환 운동", warmup:"가볍게 제자리 걷기 1분",
+     ex:[
+       {n:"덤벨 컬", s:"2세트 × 20회", t:"이두", tip:"서킷! 쉬는 시간 짧게(30초) 가져가."},
+       {n:"덤벨 킥백", s:"2세트 × 20회", t:"삼두", tip:"바로 이어서. 펌핑감 느끼기."},
+       {n:"사이드 레터럴 레이즈", s:"2세트 × 20회", t:"어깨", tip:"가볍게 빠르게."},
+       {n:"밴드 컬 + 푸시다운", s:"2세트 × 20회씩", t:"이두/삼두", tip:"위로 당기고 아래로 눌러. 마무리 펌핑."}
+     ]},
+  6:{type:"active", title:"가벼운 회복 + 스트레칭", emo:"🧘", note:"밴드 풀어파트 2세트 × 15회만 가볍게 + 팔/어깨 스트레칭 5분. 무리하지 말기!"}
+};
+
+const DAY_NAMES=["일","월","화","수","목","금","토"];
+let viewDay = new Date().getDay();
+const todayIdx = new Date().getDay();
+
+function storeKey(d){
+  const t=new Date();
+  return `arm-${t.getFullYear()}-${t.getMonth()}-${t.getDate()}-d${d}`;
+}
+
+function renderDays(){
+  const box=document.getElementById("days");
+  box.innerHTML="";
+  DAY_NAMES.forEach((nm,i)=>{
+    const el=document.createElement("div");
+    el.className="day"+(i===viewDay?" active":"")+(i===todayIdx?" today":"");
+    el.innerHTML=`<span class="n">${nm}</span>${PLAN[i].type==="rest"?"휴":PLAN[i].type==="active"?"회":"💪"}`;
+    el.onclick=()=>{viewDay=i;render();};
+    box.appendChild(el);
+  });
+}
+
+function render(){
+  renderDays();
+  const p=PLAN[viewDay];
+  const c=document.getElementById("content");
+  const prog=document.getElementById("progress");
+
+  if(p.type!=="work"){
+    prog.style.display="none";
+    c.innerHTML=`<div class="hero rest-box">
+      <div class="emo">${p.emo}</div>
+      <h2>${p.title}</h2>
+      <p>${p.note}</p>
+    </div>`;
+    return;
+  }
+
+  const isToday = viewDay===todayIdx;
+  let html=`<div class="hero">
+    <span class="tag">${isToday?"오늘의 운동":DAY_NAMES[viewDay]+"요일 운동"}</span>
+    <h2>${p.title}</h2>
+    <div class="meta">${p.subtitle} · 총 ${p.ex.length}개 동작</div>
+  </div>`;
+
+  html+=`<div class="ex" style="border-style:dashed">
+    <div class="ex-body"><p class="ex-name">🔥 워밍업</p>
+    <p class="ex-tip" style="margin-top:7px">${p.warmup}</p></div></div>`;
+
+  html+=`<div class="sec-title">운동 (세트 끝나면 체크)</div>`;
+  p.ex.forEach((e,i)=>{
+    const done=localStorage.getItem(storeKey(viewDay)+"-"+i)==="1";
+    html+=`<div class="ex ${done?"done":""}" data-i="${i}">
+      <div class="ex-head">
+        <button class="check">✓</button>
+        <div class="ex-body">
+          <p class="ex-name">${e.n}</p>
+          <div class="ex-sets">${e.s}</div>
+          <span class="ex-target">${e.t}</span>
+          <p class="ex-tip">${e.tip}</p>
+        </div>
+      </div>
+    </div>`;
+  });
+  c.innerHTML=html;
+
+  c.querySelectorAll(".ex[data-i]").forEach(el=>{
+    el.querySelector(".check").onclick=()=>{
+      const i=el.dataset.i;
+      const k=storeKey(viewDay)+"-"+i;
+      const now=localStorage.getItem(k)==="1";
+      localStorage.setItem(k, now?"0":"1");
+      render();
+    };
+  });
+
+  prog.style.display="block";
+  updateProgress(p);
+}
+
+function updateProgress(p){
+  let done=0;
+  p.ex.forEach((e,i)=>{ if(localStorage.getItem(storeKey(viewDay)+"-"+i)==="1") done++; });
+  const pct=Math.round(done/p.ex.length*100);
+  document.getElementById("barFill").style.width=pct+"%";
+  const t=document.getElementById("ptxt");
+  if(pct===100){ t.innerHTML=`<span class="done-msg">🎉 오늘 운동 끝! 수고했어 💪</span>`; }
+  else { t.textContent=`${done} / ${p.ex.length} 완료 (${pct}%)`; }
+}
+
+document.getElementById("reset").onclick=()=>{
+  const p=PLAN[viewDay];
+  if(p.type!=="work") return;
+  p.ex.forEach((e,i)=>localStorage.removeItem(storeKey(viewDay)+"-"+i));
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
