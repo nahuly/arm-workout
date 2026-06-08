@@ -21,8 +21,11 @@
     line-height:1.5;
   }
   .wrap{max-width:520px;margin:0 auto;padding:18px 16px 60px;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;}
   header h1{font-size:21px;margin:4px 0 2px;font-weight:800;letter-spacing:-.4px;}
   header p{margin:0;color:var(--sub);font-size:13px;}
+  .gear{background:var(--card);border:1px solid var(--line);color:var(--txt);
+    width:40px;height:40px;border-radius:12px;font-size:18px;cursor:pointer;flex:0 0 auto;margin-top:4px;}
 
   .days{display:flex;gap:6px;margin:18px 0 16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
   .days::-webkit-scrollbar{display:none;}
@@ -50,6 +53,9 @@
   .rest-box .emo{font-size:46px;}
   .rest-box h2{margin:10px 0 6px;font-size:22px;}
   .rest-box p{color:var(--sub);margin:0;font-size:14px;}
+
+  .note-card{background:rgba(91,140,255,.1);border:1px solid rgba(91,140,255,.3);
+    border-radius:13px;padding:11px 13px;margin-bottom:14px;font-size:13px;color:#bcd0ff;}
 
   .sec-title{font-size:13px;color:var(--sub);font-weight:700;margin:22px 4px 10px;
     text-transform:uppercase;letter-spacing:.5px;}
@@ -85,17 +91,45 @@
   .footnote{color:var(--sub);font-size:12px;text-align:center;margin-top:26px;line-height:1.6;}
   .reset{background:none;border:1px solid var(--line);color:var(--sub);font-size:12px;
     padding:6px 14px;border-radius:20px;cursor:pointer;margin-top:10px;}
+
+  /* ===== 설정 오버레이 ===== */
+  .overlay{position:fixed;inset:0;background:rgba(8,9,12,.75);backdrop-filter:blur(4px);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;}
+  .overlay.show{display:flex;}
+  .sheet{background:var(--bg);border-top-left-radius:22px;border-top-right-radius:22px;
+    border:1px solid var(--line);width:100%;max-width:520px;padding:20px 18px 30px;
+    max-height:90vh;overflow-y:auto;animation:up .25s ease;}
+  @keyframes up{from{transform:translateY(40px);opacity:.4;}to{transform:none;opacity:1;}}
+  .sheet h2{margin:2px 0 4px;font-size:20px;font-weight:800;}
+  .sheet .sub{color:var(--sub);font-size:13px;margin:0 0 18px;}
+  .field{margin-bottom:18px;}
+  .field > label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:9px;}
+  .opts{display:flex;gap:8px;flex-wrap:wrap;}
+  .opt{flex:1;min-width:70px;text-align:center;padding:12px 8px;border-radius:13px;
+    background:var(--card);border:1px solid var(--line);color:var(--txt);font-size:14px;
+    font-weight:600;cursor:pointer;transition:.15s;}
+  .opt small{display:block;color:var(--sub);font-size:11px;font-weight:500;margin-top:2px;}
+  .opt.sel{background:var(--accent);color:#1a1208;border-color:var(--accent);}
+  .opt.sel small{color:#7a4a18;}
+  .age-row{display:flex;align-items:center;gap:12px;}
+  .age-row input{flex:1;}
+  .age-val{font-weight:800;font-size:18px;min-width:54px;text-align:right;}
+  input[type=range]{accent-color:var(--accent);height:30px;}
+  .save{width:100%;padding:15px;border:none;border-radius:14px;background:var(--accent);
+    color:#1a1208;font-size:16px;font-weight:800;cursor:pointer;margin-top:6px;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>💪 팔 만들기 데일리</h1>
-    <p>초보 · 1kg 아령 + 밴드 · 매일 자동 추천</p>
-  </header>
+  <div class="topbar">
+    <header>
+      <h1>💪 팔 만들기 데일리</h1>
+      <p id="subline">초보 · 1kg 아령 + 밴드</p>
+    </header>
+    <button class="gear" id="gear" aria-label="설정">⚙️</button>
+  </div>
 
   <div class="days" id="days"></div>
-
   <div id="content"></div>
 
   <div class="progress" id="progress" style="display:none">
@@ -110,48 +144,106 @@
   </div>
 </div>
 
+<!-- 설정 시트 -->
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2>내 정보 설정 ⚙️</h2>
+    <p class="sub">입력값은 이 폰에만 저장돼요. 서버로 안 보냅니다.</p>
+
+    <div class="field">
+      <label>성별</label>
+      <div class="opts" data-key="sex">
+        <div class="opt" data-v="female">여성</div>
+        <div class="opt" data-v="male">남성</div>
+        <div class="opt" data-v="none">선택 안 함</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>나이</label>
+      <div class="age-row">
+        <input type="range" id="age" min="14" max="75" step="1">
+        <span class="age-val" id="ageVal">30세</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>목표</label>
+      <div class="opts" data-key="goal">
+        <div class="opt" data-v="line">탄탄한 라인<small>고반복·날씬한 팔</small></div>
+        <div class="opt" data-v="size">알통 키우기<small>근육 사이즈</small></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>운동 빈도</label>
+      <div class="opts" data-key="freq">
+        <div class="opt" data-v="3">주 3일<small>팔 전체</small></div>
+        <div class="opt" data-v="4">주 4일<small>분할</small></div>
+        <div class="opt" data-v="5">주 5일<small>분할+서킷</small></div>
+      </div>
+    </div>
+
+    <button class="save" id="save">저장하고 시작 💪</button>
+  </div>
+</div>
+
 <script>
-/* ===== 루틴 데이터 (초보 · 1kg 아령 2개 + 저항밴드) ===== */
-const PLAN = {
-  0:{type:"rest", title:"완전 휴식", emo:"😴", note:"근육은 쉴 때 자라. 푹 쉬고 스트레칭만 가볍게!"},
-  1:{type:"work", title:"이두 + 전완", subtitle:"알통·앞팔 집중", warmup:"팔 돌리기 20초 + 손목 돌리기 20초",
-     ex:[
-       {n:"덤벨 컬", s:"3세트 × 15회", t:"이두", tip:"팔꿈치를 옆구리에 고정! 반동 쓰지 말고 천천히."},
-       {n:"밴드 컬", s:"3세트 × 20회", t:"이두", tip:"밴드 밟고 서서 당겨. 1kg보다 끝까지 긴장감 줘서 펌핑 잘 됨."},
-       {n:"해머 컬", s:"3세트 × 15회", t:"이두/전완", tip:"엄지가 위로 가게 잡고. 망치 들듯이."},
-       {n:"리스트 컬", s:"3세트 × 20회", t:"전완", tip:"손바닥 위로, 손목만 까딱까딱. 앞팔 두꺼워지는 운동."}
-     ]},
-  2:{type:"work", title:"삼두 + 어깨", subtitle:"팔 뒤쪽·어깨 라인", warmup:"어깨 으쓱 20초 + 팔 뒤로 깍지 스트레칭",
-     ex:[
-       {n:"오버헤드 익스텐션", s:"3세트 × 15회", t:"삼두", tip:"아령 양손으로 머리 뒤로. 팔꿈치 고정하고 위로만."},
-       {n:"덤벨 킥백", s:"3세트 × 15회", t:"삼두", tip:"상체 숙이고 팔 뒤로 쭉. 팔 뒤쪽 흔들리는 살에 직빵."},
-       {n:"밴드 푸시다운", s:"3세트 × 20회", t:"삼두", tip:"문 위에 밴드 걸고 아래로 눌러. 팔꿈치 붙이고."},
-       {n:"사이드 레터럴 레이즈", s:"3세트 × 15회", t:"어깨", tip:"양옆으로 어깨 높이까지. 어깨 둥글게 만들어줌."}
-     ]},
-  3:{type:"work", title:"이두 + 전완 (변형)", subtitle:"각도 바꿔 자극", warmup:"팔 돌리기 20초 + 손목 돌리기 20초",
-     ex:[
-       {n:"컨센트레이션 컬", s:"3세트 × 12회", t:"이두", tip:"앉아서 팔꿈치를 허벅지 안쪽에 대고 한 팔씩. 알통 정점 자극."},
-       {n:"밴드 컬 (와이드)", s:"3세트 × 20회", t:"이두", tip:"밴드를 넓게 잡고 컬. 안쪽 이두 자극."},
-       {n:"역방향 컬", s:"3세트 × 15회", t:"전완", tip:"손등이 위로 오게 잡고 컬. 앞팔 윗부분."},
-       {n:"리버스 리스트 컬", s:"3세트 × 20회", t:"전완", tip:"손등 위로, 손목 들어올리기. 앞팔 균형."}
-     ]},
-  4:{type:"work", title:"삼두 + 어깨 (변형)", subtitle:"각도 바꿔 자극", warmup:"어깨 으쓱 20초 + 팔 스트레칭",
-     ex:[
-       {n:"무릎 푸시업", s:"3세트 × 10회", t:"삼두/가슴", tip:"손 좁게 짚으면 삼두에 더 들어가. 힘들면 무릎 대고."},
-       {n:"한손 오버헤드 익스텐션", s:"3세트 × 12회", t:"삼두", tip:"아령 한 손으로 머리 뒤. 좌우 번갈아."},
-       {n:"프론트 레이즈", s:"3세트 × 15회", t:"어깨", tip:"앞으로 어깨 높이까지 들기. 천천히 내리기."},
-       {n:"밴드 풀어파트", s:"3세트 × 20회", t:"어깨/등", tip:"밴드 가슴 앞에서 양옆으로 쫙. 자세 교정 + 뒤어깨."}
-     ]},
-  5:{type:"work", title:"팔 전체 펌핑 서킷", subtitle:"가볍게 순환 운동", warmup:"가볍게 제자리 걷기 1분",
-     ex:[
-       {n:"덤벨 컬", s:"2세트 × 20회", t:"이두", tip:"서킷! 쉬는 시간 짧게(30초) 가져가."},
-       {n:"덤벨 킥백", s:"2세트 × 20회", t:"삼두", tip:"바로 이어서. 펌핑감 느끼기."},
-       {n:"사이드 레터럴 레이즈", s:"2세트 × 20회", t:"어깨", tip:"가볍게 빠르게."},
-       {n:"밴드 컬 + 푸시다운", s:"2세트 × 20회씩", t:"이두/삼두", tip:"위로 당기고 아래로 눌러. 마무리 펌핑."}
-     ]},
-  6:{type:"active", title:"가벼운 회복 + 스트레칭", emo:"🧘", note:"밴드 풀어파트 2세트 × 15회만 가볍게 + 팔/어깨 스트레칭 5분. 무리하지 말기!"}
+/* ============ 동작 풀 (목표에 따라 반복수 자동 변경) ============ */
+// reps: {line:"탄탄한 라인", size:"알통 키우기"}
+const E = {
+  curl:        {n:"덤벨 컬", t:"이두", tip:"팔꿈치를 옆구리에 고정! 반동 쓰지 말고 천천히.", reps:{line:"3세트 × 18회",size:"4세트 × 12회"}},
+  bandCurl:    {n:"밴드 컬", t:"이두", tip:"밴드 밟고 서서 당겨. 끝까지 긴장감 줘서 펌핑 잘 됨.", reps:{line:"3세트 × 20회",size:"4세트 × 15회"}},
+  hammer:      {n:"해머 컬", t:"이두/전완", tip:"엄지가 위로 가게 잡고. 망치 들듯이.", reps:{line:"3세트 × 18회",size:"4세트 × 12회"}},
+  concentr:    {n:"컨센트레이션 컬", t:"이두", tip:"앉아서 팔꿈치를 허벅지 안쪽에 대고 한 팔씩. 알통 정점 자극.", reps:{line:"3세트 × 15회",size:"4세트 × 10회"}},
+  wristCurl:   {n:"리스트 컬", t:"전완", tip:"손바닥 위로, 손목만 까딱까딱. 앞팔 두꺼워지는 운동.", reps:{line:"3세트 × 20회",size:"3세트 × 15회"}},
+  revCurl:     {n:"역방향 컬", t:"전완", tip:"손등이 위로 오게 잡고 컬. 앞팔 윗부분.", reps:{line:"3세트 × 18회",size:"3세트 × 12회"}},
+  overhead:    {n:"오버헤드 익스텐션", t:"삼두", tip:"아령 양손으로 머리 뒤로. 팔꿈치 고정하고 위로만.", reps:{line:"3세트 × 18회",size:"4세트 × 12회"}},
+  kickback:    {n:"덤벨 킥백", t:"삼두", tip:"상체 숙이고 팔 뒤로 쭉. 팔 뒤쪽 흔들리는 살에 직빵.", reps:{line:"3세트 × 18회",size:"4세트 × 12회"}},
+  pushdown:    {n:"밴드 푸시다운", t:"삼두", tip:"문 위에 밴드 걸고 아래로 눌러. 팔꿈치 붙이고.", reps:{line:"3세트 × 20회",size:"4세트 × 15회"}},
+  kneePush:    {n:"무릎 푸시업", t:"삼두/가슴", tip:"손 좁게 짚으면 삼두에 더 들어가. 힘들면 무릎 대고.", reps:{line:"3세트 × 12회",size:"4세트 × 8회"}},
+  lateral:     {n:"사이드 레터럴 레이즈", t:"어깨", tip:"양옆으로 어깨 높이까지. 어깨 둥글게 만들어줌.", reps:{line:"3세트 × 18회",size:"4세트 × 12회"}},
+  front:       {n:"프론트 레이즈", t:"어깨", tip:"앞으로 어깨 높이까지 들기. 천천히 내리기.", reps:{line:"3세트 × 18회",size:"4세트 × 12회"}},
+  pullApart:   {n:"밴드 풀어파트", t:"어깨/등", tip:"밴드 가슴 앞에서 양옆으로 쫙. 자세 교정 + 뒤어깨.", reps:{line:"3세트 × 20회",size:"3세트 × 15회"}},
+  shoulderP:   {n:"숄더 프레스", t:"어깨", tip:"아령을 어깨에서 머리 위로. 어깨 전체.", reps:{line:"3세트 × 15회",size:"4세트 × 10회"}}
 };
 
+/* ============ 세션 정의 ============ */
+const SESS = {
+  // 주3일용: 매번 팔 전체, 강조점만 다름
+  FULL_BI:  {title:"팔 전체 · 이두 강조", subtitle:"알통 위주 + 어깨", warmup:"팔 돌리기 20초 + 손목 돌리기 20초",
+             ex:["curl","hammer","bandCurl","overhead","lateral"]},
+  FULL_TRI: {title:"팔 전체 · 삼두 강조", subtitle:"팔뒤 위주 + 어깨", warmup:"어깨 으쓱 20초 + 팔 뒤 스트레칭",
+             ex:["overhead","kickback","pushdown","curl","lateral"]},
+  FULL_BAL: {title:"팔 전체 · 균형 펌핑", subtitle:"골고루 + 전완/어깨", warmup:"제자리 걷기 1분",
+             ex:["curl","kickback","lateral","wristCurl","pullApart"]},
+  // 주4·5일용: 분할
+  BI_A:  {title:"이두 + 전완", subtitle:"알통·앞팔 집중", warmup:"팔 돌리기 20초 + 손목 돌리기 20초",
+          ex:["curl","bandCurl","hammer","wristCurl"]},
+  TRI_A: {title:"삼두 + 어깨", subtitle:"팔뒤·어깨 라인", warmup:"어깨 으쓱 20초 + 팔 뒤 스트레칭",
+          ex:["overhead","kickback","pushdown","lateral"]},
+  BI_B:  {title:"이두 + 전완 (변형)", subtitle:"각도 바꿔 자극", warmup:"팔 돌리기 20초 + 손목 돌리기 20초",
+          ex:["concentr","bandCurl","revCurl","wristCurl"]},
+  TRI_B: {title:"삼두 + 어깨 (변형)", subtitle:"각도 바꿔 자극", warmup:"어깨 으쓱 20초 + 팔 스트레칭",
+          ex:["kneePush","overhead","front","pullApart"]},
+  CIRCUIT:{title:"팔 전체 펌핑 서킷", subtitle:"가볍게 빠르게 순환", warmup:"제자리 걷기 1분",
+          ex:["curl","kickback","lateral","shoulderP","pullApart"]}
+};
+
+/* ============ 빈도별 주간 스케줄 (0=일 ~ 6=토) ============ */
+const SCHED = {
+  3:{0:"rest",1:"FULL_BI",2:"rest",3:"FULL_TRI",4:"rest",5:"FULL_BAL",6:"active"},
+  4:{0:"rest",1:"BI_A",2:"TRI_A",3:"rest",4:"BI_B",5:"TRI_B",6:"active"},
+  5:{0:"rest",1:"BI_A",2:"TRI_A",3:"rest",4:"BI_B",5:"TRI_B",6:"CIRCUIT"}
+};
+
+/* ============ 설정 저장/로드 ============ */
+const DEF = {sex:"female", age:30, goal:"line", freq:"3"};
+function loadCfg(){ try{return {...DEF, ...JSON.parse(localStorage.getItem("arm-cfg")||"{}")};}catch(e){return {...DEF};} }
+function saveCfg(c){ localStorage.setItem("arm-cfg", JSON.stringify(c)); }
+let cfg = loadCfg();
+
+/* ============ 메인 렌더 ============ */
 const DAY_NAMES=["일","월","화","수","목","금","토"];
 let viewDay = new Date().getDay();
 const todayIdx = new Date().getDay();
@@ -161,21 +253,44 @@ function storeKey(d){
   return `arm-${t.getFullYear()}-${t.getMonth()}-${t.getDate()}-d${d}`;
 }
 
+// 해당 요일의 실제 플랜 객체 만들기
+function planFor(day){
+  const code = SCHED[cfg.freq][day];
+  if(code==="rest") return {type:"rest", title:"완전 휴식", emo:"😴", note:"근육은 쉴 때 자라. 푹 쉬고 스트레칭만 가볍게!"};
+  if(code==="active") return {type:"active", title:"가벼운 회복 + 스트레칭", emo:"🧘",
+       note:"밴드 풀어파트 2세트 × 15회만 가볍게 + 팔/어깨 스트레칭 5분. 무리하지 말기!"};
+  const s = SESS[code];
+  return {type:"work", title:s.title, subtitle:s.subtitle, warmup:s.warmup,
+          ex:s.ex.map(k=>{const e=E[k];return {n:e.n,t:e.t,tip:e.tip,s:e.reps[cfg.goal]};})};
+}
+
+function ageNote(){
+  if(cfg.age>=50) return "💡 50대 이상: 워밍업 1분 더, 세트 사이 휴식을 넉넉히(1분30초) 가져가세요.";
+  if(cfg.age>=40) return "💡 40대: 관절 보호를 위해 워밍업 충분히 하고 천천히 진행하세요.";
+  if(cfg.age<=18) return "💡 성장기엔 무리한 고중량보다 바른 자세와 꾸준함이 더 중요해요.";
+  return "";
+}
+
 function renderDays(){
   const box=document.getElementById("days");
   box.innerHTML="";
   DAY_NAMES.forEach((nm,i)=>{
+    const p=planFor(i);
     const el=document.createElement("div");
     el.className="day"+(i===viewDay?" active":"")+(i===todayIdx?" today":"");
-    el.innerHTML=`<span class="n">${nm}</span>${PLAN[i].type==="rest"?"휴":PLAN[i].type==="active"?"회":"💪"}`;
+    el.innerHTML=`<span class="n">${nm}</span>${p.type==="rest"?"휴":p.type==="active"?"회":"💪"}`;
     el.onclick=()=>{viewDay=i;render();};
     box.appendChild(el);
   });
 }
 
 function render(){
+  // 서브라인 갱신
+  const goalTxt = cfg.goal==="line"?"탄탄한 라인":"알통 키우기";
+  document.getElementById("subline").textContent = `초보 · 1kg 아령 + 밴드 · ${goalTxt} · 주${cfg.freq}일`;
+
   renderDays();
-  const p=PLAN[viewDay];
+  const p=planFor(viewDay);
   const c=document.getElementById("content");
   const prog=document.getElementById("progress");
 
@@ -195,6 +310,9 @@ function render(){
     <h2>${p.title}</h2>
     <div class="meta">${p.subtitle} · 총 ${p.ex.length}개 동작</div>
   </div>`;
+
+  const an=ageNote();
+  if(an) html+=`<div class="note-card">${an}</div>`;
 
   html+=`<div class="ex" style="border-style:dashed">
     <div class="ex-body"><p class="ex-name">🔥 워밍업</p>
@@ -242,11 +360,47 @@ function updateProgress(p){
 }
 
 document.getElementById("reset").onclick=()=>{
-  const p=PLAN[viewDay];
+  const p=planFor(viewDay);
   if(p.type!=="work") return;
   p.ex.forEach((e,i)=>localStorage.removeItem(storeKey(viewDay)+"-"+i));
   render();
 };
+
+/* ============ 설정 시트 동작 ============ */
+const overlay=document.getElementById("overlay");
+function openSheet(){
+  // 현재 cfg를 UI에 반영
+  document.querySelectorAll('.opts').forEach(g=>{
+    const key=g.dataset.key;
+    g.querySelectorAll('.opt').forEach(o=>o.classList.toggle('sel', o.dataset.v===String(cfg[key])));
+  });
+  document.getElementById("age").value=cfg.age;
+  document.getElementById("ageVal").textContent=cfg.age+"세";
+  overlay.classList.add("show");
+}
+document.getElementById("gear").onclick=openSheet;
+
+document.querySelectorAll('.opts').forEach(g=>{
+  g.querySelectorAll('.opt').forEach(o=>{
+    o.onclick=()=>{ g.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel')); o.classList.add('sel'); };
+  });
+});
+document.getElementById("age").oninput=(e)=>{ document.getElementById("ageVal").textContent=e.target.value+"세"; };
+
+document.getElementById("save").onclick=()=>{
+  document.querySelectorAll('.opts').forEach(g=>{
+    const sel=g.querySelector('.opt.sel');
+    if(sel) cfg[g.dataset.key]=sel.dataset.v;
+  });
+  cfg.age=parseInt(document.getElementById("age").value,10);
+  saveCfg(cfg);
+  overlay.classList.remove("show");
+  render();
+};
+overlay.onclick=(e)=>{ if(e.target===overlay) overlay.classList.remove("show"); };
+
+/* 첫 방문이면 설정 시트 먼저 띄우기 */
+if(!localStorage.getItem("arm-cfg")) openSheet();
 
 render();
 </script>
